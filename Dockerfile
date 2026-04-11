@@ -28,4 +28,4 @@ COPY . .
 ENV PATH="/app/.venv/bin:$PATH"
 
 # Запускаем воркер
-CMD ["python", "worker.py"]
+CMD ["python", "app/worker.py"]
