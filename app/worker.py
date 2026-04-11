@@ -1,4 +1,6 @@
 import asyncio
+import os
+
 from temporalio.client import Client
 from temporalio.worker import Worker
 
@@ -6,9 +8,11 @@ from app.activities import say_hello
 from app.workflows import GreetingWorkflow
 
 
+TEMPORAL_HOST = os.getenv("TEMPORAL_HOST", "localhost:7233")
+
 async def main():
     # Подключаемся к локальному серверу
-    client = await Client.connect("localhost:7233")
+    client = await Client.connect(TEMPORAL_HOST)
 
     # Создаем воркер
     worker = Worker(
