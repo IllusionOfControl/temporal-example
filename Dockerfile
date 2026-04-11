@@ -33,4 +33,4 @@ RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync --frozen --no-dev
 
 # Run the application
-CMD ["python", "worker.py"]
+CMD ["python", "app/worker.py"]
