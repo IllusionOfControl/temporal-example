@@ -1,11 +1,15 @@
 import asyncio
+import os
+
 from temporalio.client import Client
 
 from app.workflows import GreetingWorkflow
 
+TEMPORAL_HOST = os.getenv("TEMPORAL_HOST", "localhost:7233")
+
 async def main():
     # Подключаемся к серверу
-    client = await Client.connect("localhost:7233")
+    client = await Client.connect("26.5.2.110:7233x")
 
     # Запускаем Workflow и ждем результат
     result = await client.execute_workflow(

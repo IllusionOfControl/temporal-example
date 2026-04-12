@@ -4,11 +4,11 @@ import os
 from temporalio.client import Client
 from temporalio.worker import Worker
 
-from app.activities import say_hello
-from app.workflows import GreetingWorkflow
-
+from app.activities import say_hello, reserve_inventory, charge_payment, generate_invoice, send_email
+from app.workflows import GreetingWorkflow, OrderProcessingWorkflow
 
 TEMPORAL_HOST = os.getenv("TEMPORAL_HOST", "localhost:7233")
+
 
 async def main():
     # Подключаемся к локальному серверу
@@ -17,9 +17,18 @@ async def main():
     # Создаем воркер
     worker = Worker(
         client,
-        task_queue="hello-task-queue",
-        workflows=[GreetingWorkflow],
-        activities=[say_hello],
+        task_queue="default",
+        workflows=[
+            GreetingWorkflow,
+            OrderProcessingWorkflow
+        ],
+        activities=[
+            say_hello,
+            reserve_inventory,
+            charge_payment,
+            generate_invoice,
+            send_email
+        ],
     )
 
     print("Воркер запущен. Нажми Ctrl+C для остановки.")
