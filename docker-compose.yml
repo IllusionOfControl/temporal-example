@@ -2,7 +2,7 @@ services:
   temporal:
     image: temporalio/admin-tools:latest
     container_name: temporal-server
-    command: ["temporal", "server", "start-dev", "--ip", "0.0.0.0"]
+    command: [ "temporal", "server", "start-dev", "--ip", "0.0.0.0" ]
     ports:
       - "7233:7233" # Порт для подключения Worker и Client (gRPC)
       - "8233:8233" # Порт для Web UI
@@ -19,6 +19,23 @@ services:
     networks:
       - temporal-network
     restart: on-failure
+
+  postgres:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_USER: myuser
+      POSTGRES_PASSWORD: mypassword
+      POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
+
+  wiremock:
+    image: wiremock/wiremock:latest
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./wiremock:/home/wiremock
+    command: [ "--global-response-templating" ]
 
 networks:
   temporal-network:

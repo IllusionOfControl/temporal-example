@@ -1,0 +1,18 @@
+{
+  "request": {
+    "method": "POST",
+    "url": "/api/v1/verify-kyc"
+  },
+  "response": {
+    "status": 200,
+    "jsonBody": {
+      "status": "VERIFIED",
+      "score": 98,
+      "message": "Documents are valid"
+    },
+    "headers": {
+      "Content-Type": "application/json"
+    },
+    "fixedDelayMilliseconds": 1500
+  }
+}
