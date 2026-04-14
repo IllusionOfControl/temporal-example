@@ -14,7 +14,7 @@ async def main():
         UserOnboardingWorkflow.run,
         args=["Иван Иванов", "ivan@example.com"],
         id=process_id,
-        task_queue="onboarding-queue",
+        task_queue="default",
     )
 
     print(f"Результат: {result}")

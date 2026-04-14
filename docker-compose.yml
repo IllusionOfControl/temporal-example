@@ -26,13 +26,9 @@ services:
       POSTGRES_USER: myuser
       POSTGRES_PASSWORD: mypassword
       POSTGRES_DB: mydatabase
-    ports:
-      - "5432:5432"
 
   wiremock:
     image: wiremock/wiremock:latest
-    ports:
-      - "8080:8080"
     volumes:
       - ./wiremock:/home/wiremock
     command: [ "--global-response-templating" ]
