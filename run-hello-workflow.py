@@ -9,7 +9,7 @@ TEMPORAL_HOST = os.getenv("TEMPORAL_HOST", "localhost:7233")
 
 async def main():
     # Подключаемся к серверу
-    client = await Client.connect("26.5.2.110:7233x")
+    client = await Client.connect("26.5.2.110:7233")
 
     # Запускаем Workflow и ждем результат
     result = await client.execute_workflow(

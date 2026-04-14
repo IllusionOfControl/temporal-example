@@ -51,7 +51,7 @@ async def send_email(email: str) -> str:
     return "Email отправлен"
 
 
-DB_DSN = "postgresql://myuser:mypassword@localhost:5432/mydatabase"
+DB_DSN = "postgresql://myuser:mypassword@postgres:5432/mydatabase"
 WIREMOCK_URL = "http://localhost:8080/api/v1/verify-kyc"
 
 
