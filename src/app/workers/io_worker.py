@@ -6,6 +6,7 @@ from temporalio.worker import Worker
 
 from app.activities.email import send_email
 from app.activities.order_processing import OrderActivities
+from app.activities.review_ml import ReviewActivities
 from app.activities.user_onboarding import UserActivities
 from app.infrastructure.db import get_session_factory
 from app.infrastructure.kyc_client import KYCClient
@@ -26,6 +27,7 @@ async def main(settings: Settings = get_settings()):
     # Создаём активности с зависимостями
     user_acts = UserActivities(session_factory, kyc_client)
     order_acts = OrderActivities()
+    review_acts = ReviewActivities(session_factory)
 
     # Создаем воркер
     worker = Worker(
@@ -38,6 +40,8 @@ async def main(settings: Settings = get_settings()):
             user_acts.create_user_in_db,
             user_acts.call_kyc_api,
             user_acts.update_user_status,
+            review_acts.save_review,
+            review_acts.update_results,
         ]
     )
 

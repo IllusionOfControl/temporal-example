@@ -44,8 +44,19 @@ services:
     deploy:
       resources:
         limits:
-          cpus: '2.0'
-          memory: '2G'
+          cpus: '1.0'
+          memory: '1G'
+
+  # 4. GPU Worker: Тяжелые вычисления (например, работа с моделями)
+  gpu-worker:
+    <<: *worker-base
+    container_name: temporal-gpu-worker
+    command: python -m app.workers.gpu_worker
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: '1G'
 
   postgres:
     image: postgres:15-alpine
