@@ -1,7 +1,7 @@
 import asyncio
 import uuid
 from temporalio.client import Client
-from app.workflows import UserOnboardingWorkflow
+from app.workflows.user_onboarding import UserOnboardingWorkflow
 
 async def main():
     client = await Client.connect("localhost:7233")

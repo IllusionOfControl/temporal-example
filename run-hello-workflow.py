@@ -1,5 +1,4 @@
 import asyncio
-import os
 import uuid
 
 from temporalio.client import Client
