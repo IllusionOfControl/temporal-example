@@ -1,3 +1,12 @@
+x-worker-base: &worker-base
+  build: .
+  depends_on:
+    - temporal
+  networks:
+    - temporal-network
+  restart: on-failure
+  env_file: .env
+
 services:
   temporal:
     image: temporalio/admin-tools:latest
@@ -9,16 +18,34 @@ services:
     networks:
       - temporal-network
 
-  worker:
-    build: .
-    container_name: python-worker
-    environment:
-      - TEMPORAL_HOST=temporal:7233
-    depends_on:
-      - temporal
-    networks:
-      - temporal-network
-    restart: on-failure
+  # 1. Main Worker: Оркестрация (Workflows)
+  main-worker:
+    <<: *worker-base
+    container_name: temporal-main-worker
+    command: python -m app.workers.main_worker
+
+  # 2. IO Worker: Работа с БД и внешними API
+  io-worker:
+    <<: *worker-base
+    container_name: temporal-io-worker
+    command: python -m app.workers.io_worker
+    # Можно ограничить ресурсы, так как IO воркер в основном ждет ответа сети
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: '512M'
+
+  # 3. CPU Worker: Тяжелые вычисления (например, обработка фото/видео)
+  cpu-worker:
+    <<: *worker-base
+    container_name: temporal-cpu-worker
+    command: python -m app.workers.cpu_worker
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0'
+          memory: '2G'
 
   postgres:
     image: postgres:15-alpine

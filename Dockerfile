@@ -1,24 +1,15 @@
-# Используем легковесный образ Python
-FROM python:3.14-slim
+FROM python:3.13-slim
 
-# Копируем бинарник uv из официального образа (самый быстрый и надежный способ)
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
-# Устанавливаем рабочую директорию
 WORKDIR /app
 
-# Настройки uv для оптимизации в Docker
 ENV UV_COMPILE_BYTECODE=1
 ENV UV_LINK_MODE=copy
 
-# Сначала копируем только файлы зависимостей для кэширования слоев Docker
 COPY pyproject.toml ./
-# Если локально сгенерируешь uv.lock, раскомментируй строку ниже:
-# COPY uv.lock ./
 
-# Устанавливаем зависимости.
-# uv автоматически создаст виртуальное окружение в папке /app/.venv
-RUN uv sync --no-install-project
+RUN uv pip install --system -r pyproject.toml
 
 # Копируем весь остальной код
 COPY . .
@@ -26,6 +17,7 @@ COPY . .
 # Добавляем виртуальное окружение в PATH.
 # Теперь команды `python` будут автоматически использовать Python из .venv
 ENV PATH="/app/.venv/bin:$PATH"
+ENV PYTHONPATH="/app/:$PYTHONPATH"
 
-# Запускаем воркер
-CMD ["python", "-m", "app.worker"]
+RUN useradd -m appuser && chown -R appuser /app
+USER appuser
