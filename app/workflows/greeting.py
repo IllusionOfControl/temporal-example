@@ -1,0 +1,21 @@
+from datetime import timedelta
+
+from temporalio import workflow
+
+from app.activities.greeting import say_hello
+
+
+@workflow.defn
+class GreetingWorkflow:
+    @workflow.run
+    async def run(self, name: str) -> str:
+        workflow.logger.info("Начинаем Workflow")
+
+        # Вызываем активность. Обязательно указываем таймаут!
+        result = await workflow.execute_activity(
+            say_hello,
+            name,
+            start_to_close_timeout=timedelta(seconds=10)
+        )
+
+        return result
