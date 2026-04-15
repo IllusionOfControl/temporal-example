@@ -12,12 +12,12 @@ COPY pyproject.toml ./
 RUN uv pip install --system -r pyproject.toml
 
 # Копируем весь остальной код
-COPY . .
+COPY src .
 
 # Добавляем виртуальное окружение в PATH.
 # Теперь команды `python` будут автоматически использовать Python из .venv
 ENV PATH="/app/.venv/bin:$PATH"
-ENV PYTHONPATH="/app/:$PYTHONPATH"
+ENV PYTHONPATH="/app/src:$PYTHONPATH"
 
 RUN useradd -m appuser && chown -R appuser /app
 USER appuser
