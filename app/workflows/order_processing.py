@@ -4,12 +4,11 @@ from datetime import timedelta
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
-from app.activities.email import send_email
-
 with workflow.unsafe.imports_passed_through():
     from app.settings import Settings, get_settings
     from app.activities.order_processing import OrderActivities
     from app.shared.models import OrderRequest
+    from app.activities.email import send_email
 
 __all__ = ["OrderProcessingWorkflow"]
 
@@ -32,7 +31,8 @@ class OrderProcessingWorkflow:
         self.status = "Одобрено менеджером"
 
     @workflow.run
-    async def run(self, order: OrderRequest, settings: Settings = get_settings()) -> str:
+    async def run(self, request: dict, settings: Settings = get_settings()) -> str:
+        order = OrderRequest.model_validate(request)
         workflow.logger.info(f"Начат процесс для заказа {order.order_id}")
 
         # 1. Резерв товара

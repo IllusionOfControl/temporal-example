@@ -14,21 +14,22 @@ __all__ = ["UserOnboardingWorkflow"]
 @workflow.defn
 class UserOnboardingWorkflow:
     @workflow.run
-    async def run(self, request: UserCreateRequest, settings: Settings = get_settings()) -> dict:
-        workflow.logger.info(f"Начинаем онбординг для {request.name} (ID: {request.user_id})")
+    async def run(self, request: dict, settings: Settings = get_settings()) -> dict:
+        user_creation = UserCreateRequest.model_validate(request)
+        workflow.logger.info(f"Начинаем онбординг для {user_creation.name} (ID: {user_creation.user_id})")
 
         # Шаг 1: Сохранение в Базу Данных
         await workflow.execute_activity(
             UserActivities.create_user_in_db,
             task_queue=settings.IO_TASK_QUEUE,
-            args=[request.user_id, request.name, request.email],
+            args=[user_creation.user_id, user_creation.name, user_creation.email],
             start_to_close_timeout=timedelta(seconds=5)
         )
 
         # Шаг 2: HTTP запрос в WireMock (с политикой ретраев)
         kyc_status = await workflow.execute_activity(
             UserActivities.call_kyc_api,
-            args=[request.user_id, request.name],
+            args=[user_creation.user_id, user_creation.name],
             task_queue=settings.IO_TASK_QUEUE,
             start_to_close_timeout=timedelta(seconds=10),
             retry_policy=RetryPolicy(
@@ -41,8 +42,8 @@ class UserOnboardingWorkflow:
         await workflow.execute_activity(
             UserActivities.update_user_status,
             task_queue=settings.IO_TASK_QUEUE,
-            args=[request.user_id, kyc_status],
+            args=[user_creation.user_id, kyc_status],
             start_to_close_timeout=timedelta(seconds=5)
         )
 
-        return {"user_id": request.user_id, "final_status": kyc_status}
+        return {"user_id": user_creation.user_id, "final_status": kyc_status}

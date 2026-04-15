@@ -4,7 +4,7 @@ from temporalio.client import Client
 from app.workflows import UserOnboardingWorkflow
 
 async def main():
-    client = await Client.connect("26.5.2.110:7233")
+    client = await Client.connect("localhost:7233")
 
     # Генерируем уникальный ID для процесса (он же будет ID в базе)
     process_id = f"user-{uuid.uuid4().hex[:8]}"

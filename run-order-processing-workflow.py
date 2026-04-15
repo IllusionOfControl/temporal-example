@@ -1,10 +1,19 @@
 import asyncio
+import uuid
+
 from temporalio.client import Client
-from app.models import OrderRequest
-from app.workflows import OrderProcessingWorkflow
+from temporalio.contrib.pydantic import pydantic_data_converter
+
+from app.settings import get_settings
+from app.shared.models import OrderRequest
+from app.workflows.order_processing import OrderProcessingWorkflow
 
 async def main():
-    client = await Client.connect("26.5.2.110:7233")
+    settings = get_settings()
+    client = await Client.connect(
+        "localhost:7233",
+        data_converter=pydantic_data_converter,
+    )
 
     order = OrderRequest(
         order_id="ORDER-777",
@@ -16,9 +25,9 @@ async def main():
     print("1. Запускаем Workflow...")
     handle = await client.start_workflow(
         OrderProcessingWorkflow.run,
-        args=(order,),
-        id=f"workflow-{order.order_id}",
-        task_queue="order-task-queue",
+        order,
+        id=f"workflow-{uuid.uuid4()}",
+        task_queue=settings.MAIN_TASK_QUEUE,
     )
 
     # Ждем пару секунд, чтобы прошли первые активности

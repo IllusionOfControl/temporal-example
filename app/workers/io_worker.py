@@ -1,6 +1,7 @@
 import asyncio
 
 from temporalio.client import Client
+from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.worker import Worker
 
 from app.activities.email import send_email
@@ -13,7 +14,10 @@ from app.settings import get_settings, Settings
 
 async def main(settings: Settings = get_settings()):
     # Подключаемся к локальному серверу
-    client = await Client.connect(settings.TEMPORAL_URL)
+    client = await Client.connect(
+        settings.TEMPORAL_URL,
+        data_converter=pydantic_data_converter,
+    )
 
     # Создаём зависимости
     session_factory = get_session_factory(settings.DATABASE_URL)
