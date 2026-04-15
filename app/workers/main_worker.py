@@ -3,6 +3,7 @@ import asyncio
 from temporalio.client import Client
 from temporalio.worker import Worker
 
+from app.activities.greeting import say_hello
 from app.settings import get_settings, Settings
 from app.workflows.greeting import GreetingWorkflow
 from app.workflows.order_processing import OrderProcessingWorkflow
@@ -22,6 +23,9 @@ async def main(settings: Settings = get_settings()):
             OrderProcessingWorkflow,
             UserOnboardingWorkflow,
         ],
+        activities=[
+            say_hello,
+        ]
     )
 
     print(f"Воркер {settings.MAIN_TASK_QUEUE} запущен. Нажми Ctrl+C для остановки.")

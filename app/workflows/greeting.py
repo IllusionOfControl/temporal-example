@@ -2,6 +2,8 @@ from datetime import timedelta
 
 from temporalio import workflow
 
+from app.settings import Settings
+
 with workflow.unsafe.imports_passed_through():
     from app.activities.greeting import say_hello
 

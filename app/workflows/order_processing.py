@@ -4,7 +4,10 @@ from datetime import timedelta
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
+from app.activities.email import send_email
+
 with workflow.unsafe.imports_passed_through():
+    from app.settings import Settings, get_settings
     from app.activities.order_processing import OrderActivities
     from app.shared.models import OrderRequest
 
@@ -29,13 +32,16 @@ class OrderProcessingWorkflow:
         self.status = "Одобрено менеджером"
 
     @workflow.run
-    async def run(self, order: OrderRequest) -> str:
+    async def run(self, order: OrderRequest, settings: Settings = get_settings()) -> str:
         workflow.logger.info(f"Начат процесс для заказа {order.order_id}")
 
         # 1. Резерв товара
         self.status = "Резервирование товара"
         await workflow.execute_activity(
-            OrderActivities.reserve_inventory, order, start_to_close_timeout=timedelta(seconds=5)
+            OrderActivities.reserve_inventory,
+            order,
+            task_queue=settings.IO_TASK_QUEUE,
+            start_to_close_timeout=timedelta(seconds=5)
         )
 
         # 2. Оплата (с настройкой RetryPolicy)
@@ -43,6 +49,7 @@ class OrderProcessingWorkflow:
         await workflow.execute_activity(
             OrderActivities.charge_payment,
             order,
+            task_queue=settings.IO_TASK_QUEUE,
             start_to_close_timeout=timedelta(seconds=5),
             # Настраиваем повторные попытки: максимум 5 попыток, пауза 2 секунды
             retry_policy=RetryPolicy(
@@ -54,6 +61,7 @@ class OrderProcessingWorkflow:
         # 3. Ожидание сигнала от менеджера
         self.status = "Ожидание подтверждения менеджера"
         workflow.logger.info("Workflow заснул и ждет сигнала approve_order...")
+
         # Workflow приостанавливается здесь. Он может ждать секунды, дни или месяцы!
         await workflow.wait_condition(lambda: self.manager_approved)
 
@@ -63,8 +71,18 @@ class OrderProcessingWorkflow:
 
         # Запускаем активности одновременно
         results = await asyncio.gather(
-            workflow.execute_activity(OrderActivities.generate_invoice, order.order_id, start_to_close_timeout=timedelta(seconds=10)),
-            workflow.execute_activity(OrderActivities.send_email, order.email, start_to_close_timeout=timedelta(seconds=10))
+            workflow.execute_activity(
+                OrderActivities.generate_invoice,
+                order.order_id,
+                task_queue=settings.CPU_TASK_QUEUE,
+                start_to_close_timeout=timedelta(seconds=10)
+            ),
+            workflow.execute_activity(
+                send_email,
+                order.email,
+                task_queue=settings.IO_TASK_QUEUE,
+                start_to_close_timeout=timedelta(seconds=10)
+            )
         )
 
         self.status = "Заказ завершен"
