@@ -2,7 +2,10 @@ from datetime import timedelta
 
 from temporalio import workflow
 
-from app.activities.greeting import say_hello
+with workflow.unsafe.imports_passed_through():
+    from app.activities.greeting import say_hello
+
+__all__ = ["GreetingWorkflow"]
 
 
 @workflow.defn

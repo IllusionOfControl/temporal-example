@@ -5,6 +5,7 @@ from temporalio import activity
 
 from app.shared.models import OrderRequest
 
+__all__ = ["OrderActivities"]
 
 class OrderActivities:
     @activity.defn

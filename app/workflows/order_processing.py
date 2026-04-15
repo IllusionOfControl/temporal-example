@@ -4,8 +4,11 @@ from datetime import timedelta
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
-from app.activities.order_processing import charge_payment, reserve_inventory, generate_invoice, send_email
-from app.models import OrderRequest
+with workflow.unsafe.imports_passed_through():
+    from app.activities.order_processing import OrderActivities
+    from app.shared.models import OrderRequest
+
+__all__ = ["OrderProcessingWorkflow"]
 
 
 @workflow.defn
@@ -32,13 +35,13 @@ class OrderProcessingWorkflow:
         # 1. Резерв товара
         self.status = "Резервирование товара"
         await workflow.execute_activity(
-            reserve_inventory, order, start_to_close_timeout=timedelta(seconds=5)
+            OrderActivities.reserve_inventory, order, start_to_close_timeout=timedelta(seconds=5)
         )
 
         # 2. Оплата (с настройкой RetryPolicy)
         self.status = "Ожидание оплаты"
         await workflow.execute_activity(
-            charge_payment,
+            OrderActivities.charge_payment,
             order,
             start_to_close_timeout=timedelta(seconds=5),
             # Настраиваем повторные попытки: максимум 5 попыток, пауза 2 секунды
@@ -60,8 +63,8 @@ class OrderProcessingWorkflow:
 
         # Запускаем активности одновременно
         results = await asyncio.gather(
-            workflow.execute_activity(generate_invoice, order.order_id, start_to_close_timeout=timedelta(seconds=10)),
-            workflow.execute_activity(send_email, order.email, start_to_close_timeout=timedelta(seconds=10))
+            workflow.execute_activity(OrderActivities.generate_invoice, order.order_id, start_to_close_timeout=timedelta(seconds=10)),
+            workflow.execute_activity(OrderActivities.send_email, order.email, start_to_close_timeout=timedelta(seconds=10))
         )
 
         self.status = "Заказ завершен"

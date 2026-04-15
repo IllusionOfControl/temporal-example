@@ -20,7 +20,7 @@ async def main(settings: Settings = get_settings()):
         workflows=[
             GreetingWorkflow,
             OrderProcessingWorkflow,
-            UserOnboardingWorkflow
+            UserOnboardingWorkflow,
         ],
     )
 

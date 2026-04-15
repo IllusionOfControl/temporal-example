@@ -1,6 +1,8 @@
 import httpx
-from temporalio import activity
-from temporalio.exceptions import ApplicationError
+
+
+class KYCClientException(Exception):
+    """ KYC client exception """
 
 
 class KYCClient:
@@ -14,12 +16,12 @@ class KYCClient:
             response = await self.client.post(self.base_url, json=payload)
 
             if response.status_code >= 500:
-                raise ApplicationError(f"KYC API error: {response.status_code}", non_retryable=False)
+                raise KYCClientException(f"KYC API error: {response.status_code}")
 
             response.raise_for_status()
             return response.json()["status"]
         except httpx.RequestError as e:
-            raise ApplicationError(f"Network error: {str(e)}", non_retryable=False)
+            raise KYCClientException(f"Network error: {str(e)}")
 
     async def close(self):
         await self.client.aclose()

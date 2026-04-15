@@ -3,8 +3,11 @@ from datetime import timedelta
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
-from app.shared.models import UserCreateRequest
-from app.activities.user_onboarding import UserActivities
+with workflow.unsafe.imports_passed_through():
+    from app.activities.user_onboarding import UserActivities
+    from app.shared.models import UserCreateRequest
+
+__all__ = ["UserOnboardingWorkflow"]
 
 
 @workflow.defn
