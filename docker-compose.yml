@@ -80,6 +80,17 @@ services:
     volumes:
       - ./include/wiremock:/home/wiremock
 
+  tests:
+    <<: *worker-base
+    container_name: workers-tests
+    profiles:
+      - testing
+    volumes:
+      - ./src:/app/src
+      - ./tests:/app/tests
+    command: >
+      bash -c "pytest /app/tests -v -s"
+
 networks:
   temporal-network:
     driver: bridge
