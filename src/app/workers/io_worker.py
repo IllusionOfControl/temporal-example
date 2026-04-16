@@ -37,6 +37,7 @@ async def main(settings: Settings = get_settings()):
             send_email,
             order_acts.charge_payment,
             order_acts.reserve_inventory,
+            order_acts.cancel_inventory_reservation,
             user_acts.create_user_in_db,
             user_acts.call_kyc_api,
             user_acts.update_user_status,

@@ -14,6 +14,11 @@ class OrderActivities:
         await asyncio.sleep(1)  # Имитация работы
         return "Товар зарезервирован"
 
+    @activity.defn
+    async def cancel_inventory_reservation(self, order: OrderRequest) -> str:
+        activity.logger.warning(f"SAGA: Отмена резерва товара {order.item_name} для заказа {order.order_id}")
+        await asyncio.sleep(1)
+        return "Резерв отменен"
 
     @activity.defn
     async def charge_payment(self, order: OrderRequest) -> str:
