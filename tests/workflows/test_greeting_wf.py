@@ -1,8 +1,11 @@
-import pytest
 import uuid
+
+import pytest
 from temporalio.worker import Worker
-from app.workflows.greeting import GreetingWorkflow
+
 from app.activities.greeting import say_hello
+from app.workflows.greeting import GreetingWorkflow
+
 
 @pytest.mark.asyncio
 async def test_greeting_workflow(temporal_env):

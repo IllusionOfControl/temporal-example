@@ -3,9 +3,11 @@ import pytest_asyncio
 from temporalio.contrib.pydantic import pydantic_data_converter
 from temporalio.testing import WorkflowEnvironment
 
+
 @pytest.fixture(scope="session")
 def anyio_backend():
     return "asyncio"
+
 
 @pytest_asyncio.fixture(scope="module")
 async def temporal_env():

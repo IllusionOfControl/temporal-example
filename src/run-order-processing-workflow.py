@@ -8,6 +8,7 @@ from app.settings import get_settings
 from app.shared.models import OrderRequest
 from app.workflows.order_processing import OrderProcessingWorkflow
 
+
 async def main():
     settings = get_settings()
     client = await Client.connect(
@@ -15,12 +16,7 @@ async def main():
         data_converter=pydantic_data_converter,
     )
 
-    order = OrderRequest(
-        order_id="ORDER-777",
-        item_name="Ноутбук",
-        amount=1500.00,
-        email="customer@example.com"
-    )
+    order = OrderRequest(order_id="ORDER-777", item_name="Ноутбук", amount=1500.00, email="customer@example.com")
 
     print("1. Запускаем Workflow...")
     handle = await client.start_workflow(
@@ -46,6 +42,7 @@ async def main():
     print("\n5. Ждем завершения Workflow...")
     result = await handle.result()
     print(f"\nИТОГ: {result}")
+
 
 if __name__ == "__main__":
     asyncio.run(main())

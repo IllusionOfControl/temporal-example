@@ -38,7 +38,6 @@ async def mock_send_email(email: str) -> str:
 @pytest.mark.asyncio
 async def test_order_processing_happy_path(temporal_env):
     settings = get_settings()
-    task_queue = f"test-order-queue-{uuid.uuid4()}"
 
     worker_main = Worker(
         temporal_env.client,
@@ -49,12 +48,7 @@ async def test_order_processing_happy_path(temporal_env):
     worker_io = Worker(
         temporal_env.client,
         task_queue=settings.IO_TASK_QUEUE,
-        activities=[
-            mock_reserve_inventory,
-            mock_cancel_inventory,
-            mock_charge_payment,
-            mock_send_email
-        ],
+        activities=[mock_reserve_inventory, mock_cancel_inventory, mock_charge_payment, mock_send_email],
     )
 
     worker_cpu = Worker(

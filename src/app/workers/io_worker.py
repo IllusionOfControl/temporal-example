@@ -12,12 +12,14 @@ from app.activities.user_onboarding import UserActivities
 from app.infrastructure.db import get_session_factory
 from app.infrastructure.kyc_client import KYCClient
 from app.infrastructure.logger import setup_logging
-from app.settings import get_settings, Settings
+from app.settings import Settings, get_settings
 
 logger = logging.getLogger(__name__)
 interrupt_event = asyncio.Event()
 
-async def main(settings: Settings = get_settings()):
+
+async def main():
+    settings: Settings = get_settings()
     setup_logging(settings.MAIN_TASK_QUEUE)
     # Подключаемся к локальному серверу
     client = await Client.connect(
@@ -48,7 +50,7 @@ async def main(settings: Settings = get_settings()):
             user_acts.update_user_status,
             review_acts.save_review,
             review_acts.update_results,
-        ]
+        ],
     ):
         # Wait until interrupted
         logger.info(f"Worker {settings.MAIN_TASK_QUEUE} started, ctrl+c to exit")

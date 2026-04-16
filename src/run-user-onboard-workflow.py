@@ -11,10 +11,7 @@ from app.workflows.user_onboarding import UserOnboardingWorkflow
 
 async def main():
     settings = get_settings()
-    client = await Client.connect(
-        "localhost:7233",
-        data_converter=pydantic_data_converter
-    )
+    client = await Client.connect("localhost:7233", data_converter=pydantic_data_converter)
 
     # Генерируем уникальный ID для пользователя (он же будет ID процесса)
     user_create_request = UserCreateRequest(

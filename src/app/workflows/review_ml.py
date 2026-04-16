@@ -1,11 +1,12 @@
 from datetime import timedelta
+
 from temporalio import workflow
 from temporalio.common import RetryPolicy
 
 with workflow.unsafe.imports_passed_through():
-    from app.settings import Settings, get_settings
-    from app.shared.models import ReviewRequest
     from app.activities.review_ml import ReviewActivities
+    from app.settings import get_settings
+    from app.shared.models import ReviewRequest
 
 __all__ = ["ReviewMLWorkflow"]
 
@@ -13,7 +14,9 @@ __all__ = ["ReviewMLWorkflow"]
 @workflow.defn
 class ReviewMLWorkflow:
     @workflow.run
-    async def run(self, request: dict, settings: Settings = get_settings()) -> dict:
+    async def run(self, request: dict) -> dict:
+        settings = get_settings()
+
         # 1. Валидация входящих данных через Pydantic
         review = ReviewRequest.model_validate(request)
         review_id = workflow.info().workflow_id
@@ -25,7 +28,7 @@ class ReviewMLWorkflow:
             ReviewActivities.save_review,
             args=[review_id, review.text],
             task_queue=settings.IO_TASK_QUEUE,
-            start_to_close_timeout=timedelta(seconds=5)
+            start_to_close_timeout=timedelta(seconds=5),
         )
 
         # 3. Легкий ML (Default Queue)
@@ -33,7 +36,7 @@ class ReviewMLWorkflow:
             ReviewActivities.analyze_sentiment,
             args=[review.text],
             task_queue=settings.CPU_TASK_QUEUE,
-            start_to_close_timeout=timedelta(seconds=10)
+            start_to_close_timeout=timedelta(seconds=10),
         )
 
         # 4. Тяжелый ML (GPU Queue)
@@ -43,10 +46,7 @@ class ReviewMLWorkflow:
             task_queue=settings.GPU_TASK_QUEUE,
             start_to_close_timeout=timedelta(minutes=5),
             heartbeat_timeout=timedelta(seconds=10),
-            retry_policy=RetryPolicy(
-                initial_interval=timedelta(seconds=5),
-                maximum_attempts=3
-            )
+            retry_policy=RetryPolicy(initial_interval=timedelta(seconds=5), maximum_attempts=3),
         )
 
         # 5. Обновление БД (Default Queue)
@@ -54,7 +54,7 @@ class ReviewMLWorkflow:
             ReviewActivities.update_results,
             args=[review_id, sentiment, summary],
             task_queue=settings.IO_TASK_QUEUE,
-            start_to_close_timeout=timedelta(seconds=5)
+            start_to_close_timeout=timedelta(seconds=5),
         )
 
         return {"sentiment": sentiment, "summary": summary}

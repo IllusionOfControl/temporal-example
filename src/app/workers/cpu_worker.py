@@ -9,13 +9,14 @@ from app.activities.greeting import say_hello
 from app.activities.order_processing import OrderActivities
 from app.activities.review_ml import ReviewActivities
 from app.infrastructure.logger import setup_logging
-from app.settings import get_settings, Settings
+from app.settings import Settings, get_settings
 
 logger = logging.getLogger(__name__)
 interrupt_event = asyncio.Event()
 
 
-async def main(settings: Settings = get_settings()):
+async def main():
+    settings: Settings = get_settings()
     setup_logging(settings.MAIN_TASK_QUEUE)
     # Подключаемся к локальному серверу
     client = await Client.connect(
@@ -28,13 +29,9 @@ async def main(settings: Settings = get_settings()):
 
     # Создаем воркер
     async with Worker(
-            client,
-            task_queue=settings.CPU_TASK_QUEUE,
-            activities=[
-                say_hello,
-                order_acts.generate_invoice,
-                review_acts.analyze_sentiment
-            ]
+        client,
+        task_queue=settings.CPU_TASK_QUEUE,
+        activities=[say_hello, order_acts.generate_invoice, review_acts.analyze_sentiment],
     ):
         # Wait until interrupted
         logger.info(f"Worker {settings.MAIN_TASK_QUEUE} started, ctrl+c to exit")

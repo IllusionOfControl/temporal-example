@@ -4,8 +4,8 @@ from temporalio import workflow
 from temporalio.common import RetryPolicy
 
 with workflow.unsafe.imports_passed_through():
-    from app.settings import Settings, get_settings
     from app.activities.user_onboarding import UserActivities
+    from app.settings import get_settings
     from app.shared.models import UserCreateRequest
 
 __all__ = ["UserOnboardingWorkflow"]
@@ -14,7 +14,9 @@ __all__ = ["UserOnboardingWorkflow"]
 @workflow.defn
 class UserOnboardingWorkflow:
     @workflow.run
-    async def run(self, request: dict, settings: Settings = get_settings()) -> dict:
+    async def run(self, request: dict) -> dict:
+        settings = get_settings()
+
         user_creation = UserCreateRequest.model_validate(request)
         workflow.logger.info(f"Начинаем онбординг для {user_creation.name} (ID: {user_creation.user_id})")
 
@@ -23,7 +25,7 @@ class UserOnboardingWorkflow:
             UserActivities.create_user_in_db,
             task_queue=settings.IO_TASK_QUEUE,
             args=[user_creation.user_id, user_creation.name, user_creation.email],
-            start_to_close_timeout=timedelta(seconds=5)
+            start_to_close_timeout=timedelta(seconds=5),
         )
 
         # Шаг 2: HTTP запрос в WireMock (с политикой ретраев)
@@ -32,10 +34,7 @@ class UserOnboardingWorkflow:
             args=[user_creation.user_id, user_creation.name],
             task_queue=settings.IO_TASK_QUEUE,
             start_to_close_timeout=timedelta(seconds=10),
-            retry_policy=RetryPolicy(
-                initial_interval=timedelta(seconds=2),
-                maximum_attempts=3
-            )
+            retry_policy=RetryPolicy(initial_interval=timedelta(seconds=2), maximum_attempts=3),
         )
 
         # Шаг 3: Обновление статуса в БД
@@ -43,7 +42,7 @@ class UserOnboardingWorkflow:
             UserActivities.update_user_status,
             task_queue=settings.IO_TASK_QUEUE,
             args=[user_creation.user_id, kyc_status],
-            start_to_close_timeout=timedelta(seconds=5)
+            start_to_close_timeout=timedelta(seconds=5),
         )
 
         return {"user_id": user_creation.user_id, "final_status": kyc_status}

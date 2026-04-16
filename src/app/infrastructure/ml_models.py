@@ -1,5 +1,6 @@
 import asyncio
 
+
 class TextSummarizerModel:
     def __init__(self, device: str = "cuda:0"):
         self.device = device

@@ -1,6 +1,7 @@
-from temporalio import activity
-from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import update
+from sqlalchemy.dialects.postgresql import insert
+from temporalio import activity
+
 from app.infrastructure.db import User
 from app.infrastructure.kyc_client import KYCClient
 
@@ -17,9 +18,11 @@ class UserActivities:
         async with self.session_factory() as session:
             async with session.begin():
                 # SQLAlchemy версия ON CONFLICT DO NOTHING
-                stmt = insert(User).values(
-                    id=user_id, name=name, email=email, status='PENDING'
-                ).on_conflict_do_nothing(index_elements=['id'])
+                stmt = (
+                    insert(User)
+                    .values(id=user_id, name=name, email=email, status="PENDING")
+                    .on_conflict_do_nothing(index_elements=["id"])
+                )
 
                 await session.execute(stmt)
             # commit произойдет автоматически при выходе из context manager 'begin'

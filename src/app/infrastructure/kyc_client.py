@@ -1,8 +1,8 @@
 import httpx
 
 
-class KYCClientException(Exception):
-    """ KYC client exception """
+class KYCClientError(Exception):
+    """KYC client exception"""
 
 
 class KYCClient:
@@ -16,12 +16,12 @@ class KYCClient:
             response = await self.client.post(self.base_url, json=payload)
 
             if response.status_code >= 500:
-                raise KYCClientException(f"KYC API error: {response.status_code}")
+                raise KYCClientError(f"KYC API error: {response.status_code}")
 
             response.raise_for_status()
             return response.json()["status"]
         except httpx.RequestError as e:
-            raise KYCClientException(f"Network error: {str(e)}")
+            raise KYCClientError(f"Network error: {e!s}") from e
 
     async def close(self):
         await self.client.aclose()

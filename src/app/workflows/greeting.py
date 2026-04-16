@@ -15,10 +15,6 @@ class GreetingWorkflow:
         workflow.logger.info("Начинаем Workflow")
 
         # Вызываем активность. Обязательно указываем таймаут!
-        result = await workflow.execute_activity(
-            say_hello,
-            name,
-            start_to_close_timeout=timedelta(seconds=10)
-        )
+        result = await workflow.execute_activity(say_hello, name, start_to_close_timeout=timedelta(seconds=10))
 
         return result

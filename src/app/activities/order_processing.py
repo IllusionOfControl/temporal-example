@@ -7,6 +7,7 @@ from app.shared.models import OrderRequest
 
 __all__ = ["OrderActivities"]
 
+
 class OrderActivities:
     @activity.defn
     async def reserve_inventory(self, order: OrderRequest) -> str:
@@ -33,12 +34,8 @@ class OrderActivities:
         activity.logger.info("Оплата успешно прошла!")
         return "Оплата получена"
 
-
     @activity.defn
     async def generate_invoice(self, order_id: str) -> str:
         activity.logger.info(f"Генерация PDF чека для {order_id}...")
         await asyncio.sleep(2)
         return f"invoice_{order_id}.pdf"
-
-
-

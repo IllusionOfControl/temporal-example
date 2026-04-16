@@ -5,10 +5,10 @@ from temporalio import workflow
 from temporalio.common import RetryPolicy
 
 with workflow.unsafe.imports_passed_through():
-    from app.settings import Settings, get_settings
-    from app.activities.order_processing import OrderActivities
-    from app.shared.models import OrderRequest
     from app.activities.email import send_email
+    from app.activities.order_processing import OrderActivities
+    from app.settings import get_settings
+    from app.shared.models import OrderRequest
 
 __all__ = ["OrderProcessingWorkflow"]
 
@@ -31,7 +31,9 @@ class OrderProcessingWorkflow:
         self.status = "Одобрено менеджером"
 
     @workflow.run
-    async def run(self, request: dict, settings: Settings = get_settings()) -> str:
+    async def run(self, request: dict) -> str:
+        settings = get_settings()
+
         order = OrderRequest.model_validate(request)
         workflow.logger.info(f"Начат процесс для заказа {order.order_id}")
 
@@ -43,7 +45,7 @@ class OrderProcessingWorkflow:
                 OrderActivities.reserve_inventory,
                 order,
                 task_queue=settings.IO_TASK_QUEUE,
-                start_to_close_timeout=timedelta(seconds=5)
+                start_to_close_timeout=timedelta(seconds=5),
             )
 
             # 2. Оплата (с настройкой RetryPolicy)
@@ -54,10 +56,7 @@ class OrderProcessingWorkflow:
                 task_queue=settings.IO_TASK_QUEUE,
                 start_to_close_timeout=timedelta(seconds=5),
                 # Настраиваем повторные попытки: максимум 5 попыток, пауза 2 секунды
-                retry_policy=RetryPolicy(
-                    initial_interval=timedelta(seconds=2),
-                    maximum_attempts=5
-                )
+                retry_policy=RetryPolicy(initial_interval=timedelta(seconds=2), maximum_attempts=5),
             )
 
             # 3. Ожидание сигнала от менеджера
@@ -77,14 +76,14 @@ class OrderProcessingWorkflow:
                     OrderActivities.generate_invoice,
                     order.order_id,
                     task_queue=settings.CPU_TASK_QUEUE,
-                    start_to_close_timeout=timedelta(seconds=10)
+                    start_to_close_timeout=timedelta(seconds=10),
                 ),
                 workflow.execute_activity(
                     send_email,
                     order.email,
                     task_queue=settings.IO_TASK_QUEUE,
-                    start_to_close_timeout=timedelta(seconds=10)
-                )
+                    start_to_close_timeout=timedelta(seconds=10),
+                ),
             )
 
             self.status = "Заказ завершен"
