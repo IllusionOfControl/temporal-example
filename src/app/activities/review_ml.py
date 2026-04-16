@@ -34,10 +34,10 @@ class ReviewActivities:
 
         activity.logger.info("Сохраняем новый отзыв в БД...")
         async with self.session_factory() as session:
-            stmt = insert(Review).values(id=review_id, text=text, status="PROCESSING")
-            stmt = stmt.on_conflict_do_nothing(index_elements=['id'])
-            await session.execute(stmt)
-            await session.commit()
+            async with session.begin():
+                stmt = insert(Review).values(id=review_id, text=text, status="PROCESSING")
+                stmt = stmt.on_conflict_do_nothing(index_elements=['id'])
+                await session.execute(stmt)
         return "Saved"
 
     @activity.defn
@@ -55,9 +55,9 @@ class ReviewActivities:
 
         activity.logger.info("Сохраняем результаты ML в БД...")
         async with self.session_factory() as session:
-            stmt = update(Review).where(Review.id == review_id).values(
-                sentiment=sentiment, summary=summary, status="COMPLETED"
-            )
-            await session.execute(stmt)
-            await session.commit()
+            async with session.begin():
+                stmt = update(Review).where(Review.id == review_id).values(
+                    sentiment=sentiment, summary=summary, status="COMPLETED"
+                )
+                await session.execute(stmt)
         return "Updated"

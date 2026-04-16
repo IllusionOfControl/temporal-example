@@ -1,6 +1,7 @@
-from pydantic import BaseModel, EmailStr, Field
+from pydantic import BaseModel, Field
 
 __all__ = ["OrderRequest", "UserCreateRequest", "KYCResponse", "ReviewRequest"]
+
 
 class OrderRequest(BaseModel):
     order_id: str
@@ -12,7 +13,7 @@ class OrderRequest(BaseModel):
 class UserCreateRequest(BaseModel):
     user_id: str
     name: str = Field(..., min_length=2)
-    email: EmailStr
+    email: str
 
 
 class KYCResponse(BaseModel):
