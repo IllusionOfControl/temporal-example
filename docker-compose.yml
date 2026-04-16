@@ -4,6 +4,7 @@ x-worker-base: &worker-base
     - temporal
   networks:
     - temporal-network
+    - shared-network
   restart: on-failure
   env_file: .env
 
@@ -64,13 +65,23 @@ services:
       POSTGRES_USER: myuser
       POSTGRES_PASSWORD: mypassword
       POSTGRES_DB: mydatabase
+    ports:
+      - "5432:5432"
+    networks:
+      - shared-network
+    volumes:
+      - ./include/db/migrations:/docker-entrypoint-initdb.d:ro
 
   wiremock:
     image: wiremock/wiremock:latest
-    volumes:
-      - ./wiremock:/home/wiremock
     command: [ "--global-response-templating" ]
+    networks:
+      - shared-network
+    volumes:
+      - ./include/wiremock:/home/wiremock
 
 networks:
   temporal-network:
+    driver: bridge
+  shared-network:
     driver: bridge
