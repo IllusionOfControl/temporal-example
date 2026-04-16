@@ -1,4 +1,5 @@
 import asyncio
+import logging
 
 from temporalio.client import Client
 from temporalio.contrib.pydantic import pydantic_data_converter
@@ -10,10 +11,14 @@ from app.activities.review_ml import ReviewActivities
 from app.activities.user_onboarding import UserActivities
 from app.infrastructure.db import get_session_factory
 from app.infrastructure.kyc_client import KYCClient
+from app.infrastructure.logger import setup_logging
 from app.settings import get_settings, Settings
 
+logger = logging.getLogger(__name__)
+interrupt_event = asyncio.Event()
 
 async def main(settings: Settings = get_settings()):
+    setup_logging(settings.MAIN_TASK_QUEUE)
     # Подключаемся к локальному серверу
     client = await Client.connect(
         settings.TEMPORAL_URL,
@@ -30,7 +35,7 @@ async def main(settings: Settings = get_settings()):
     review_acts = ReviewActivities(session_factory)
 
     # Создаем воркер
-    worker = Worker(
+    async with Worker(
         client,
         task_queue=settings.IO_TASK_QUEUE,
         activities=[
@@ -44,10 +49,11 @@ async def main(settings: Settings = get_settings()):
             review_acts.save_review,
             review_acts.update_results,
         ]
-    )
-
-    print(f"Воркер {settings.IO_TASK_QUEUE} запущен. Нажми Ctrl+C для остановки.")
-    await worker.run()
+    ):
+        # Wait until interrupted
+        logger.info(f"Worker {settings.MAIN_TASK_QUEUE} started, ctrl+c to exit")
+        await interrupt_event.wait()
+        logger.info("Shutting down")
 
 
 if __name__ == "__main__":
