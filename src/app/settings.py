@@ -16,7 +16,7 @@ class Settings(BaseSettings):
     GPU_TASK_QUEUE: str = "gpu-task-queue"
     IO_TASK_QUEUE: str = "io-task-queue"
 
-    VERIFY_KYC_API_URL: str = "http://localhost:8080/api/v1/verify-kyc"
+    VERIFY_KYC_API_URL: str = "http://wiremock:8080/api/v1/verify-kyc"
 
 
 @lru_cache
