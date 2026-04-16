@@ -1,7 +1,7 @@
 [project]
 name = "temporal-example"
 version = "0.1.0"
-description = "Add your description here"
+description = "Example project for Temporal"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
@@ -11,6 +11,50 @@ dependencies = [
     "pydantic-settings>=2.13.1",
     "sqlalchemy>=2.0.49",
     "temporalio>=1.25.0",
+]
+
+[project.optional-dependencies]
+test = [
     "pytest>=9.0.3",
     "pytest-asyncio>=1.3.0",
 ]
+dev = [
+    "ruff>=0.15.10",
+]
+
+[tool.ruff]
+# Целевая версия Python
+target-version = "py313"
+# Максимальная длина строки (120 — золотой стандарт для современных мониторов)
+line-length = 120
+
+[tool.ruff.lint]
+# Список категорий проверок:
+# E, W - ошибки и предупреждения pycodestyle
+# F - проверки Pyflakes (неиспользуемые импорты, переменные)
+# I - Isort (автоматическая сортировка импортов)
+# B - Bugbear (поиск вероятных багов)
+# UP - Pyupgrade (предложение современного синтаксиса Python)
+# ASYNC - проверки для асинхронного кода
+# N - проверка именования по PEP8
+# RUF - специфичные правила самого Ruff
+select = ["E", "F", "I", "UP", "B", "ASYNC", "N"]
+
+# Правила, которые мы игнорируем:
+# D100, D104 - отсутствие docstrings в модулях и пакетах (часто избыточно для примеров)
+ignore = ["D100", "D104"]
+
+[tool.ruff.lint.isort]
+# Группируем импорты нашего приложения отдельно от сторонних библиотек
+known-first-party = ["app"]
+
+[tool.ruff.lint.per-file-ignores]
+# В тестах разрешаем использовать assert и не требовать docstrings
+"tests/*" = ["S101", "D"]
+
+[tool.ruff.format]
+# Настройки форматирования (аналог Black)
+quote-style = "double"
+indent-style = "space"
+skip-magic-trailing-comma = false
+line-ending = "auto"

@@ -1,5 +1,7 @@
 x-worker-base: &worker-base
-  build: .
+  build:
+    context: .
+    target: prod
   depends_on:
     - temporal
   networks:
@@ -36,6 +38,9 @@ services:
         limits:
           cpus: '0.5'
           memory: '512M'
+    depends_on:
+      postgres:
+        condition: service_healthy
 
   # 3. CPU Worker: Тяжелые вычисления (например, обработка фото/видео)
   cpu-worker:
@@ -79,17 +84,6 @@ services:
       - shared-network
     volumes:
       - ./include/wiremock:/home/wiremock
-
-  tests:
-    <<: *worker-base
-    container_name: workers-tests
-    profiles:
-      - testing
-    volumes:
-      - ./src:/app/src
-      - ./tests:/app/tests
-    command: >
-      bash -c "pytest /app/tests -v -s"
 
 networks:
   temporal-network:

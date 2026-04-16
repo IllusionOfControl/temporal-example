@@ -1,4 +1,4 @@
-FROM python:3.13-slim
+FROM python:3.13-slim AS base
 
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /uvx /bin/
 
@@ -9,14 +9,23 @@ ENV UV_LINK_MODE=copy
 
 COPY pyproject.toml ./
 
+FROM base AS test
+
+RUN uv pip install --system -r pyproject.toml --extra test --extra dev
+
+COPY src ./src
+COPY tests ./tests
+
+ENV PYTHONPATH="/app/src:$PYTHONPATH"
+
+CMD ["pytest", "-v"]
+
+FROM base AS prod
+
 RUN uv pip install --system -r pyproject.toml
 
-# Копируем весь остальной код
-COPY src .
+COPY src ./src
 
-# Добавляем виртуальное окружение в PATH.
-# Теперь команды `python` будут автоматически использовать Python из .venv
-ENV PATH="/app/.venv/bin:$PATH"
 ENV PYTHONPATH="/app/src:$PYTHONPATH"
 
 RUN useradd -m appuser && chown -R appuser /app
