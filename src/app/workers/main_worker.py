@@ -8,6 +8,7 @@ from app.activities.greeting import say_hello
 from app.settings import get_settings, Settings
 from app.workflows.greeting import GreetingWorkflow
 from app.workflows.order_processing import OrderProcessingWorkflow
+from app.workflows.review_ml import ReviewMLWorkflow
 from app.workflows.user_onboarding import UserOnboardingWorkflow
 
 
@@ -28,6 +29,7 @@ async def main(settings: Settings = get_settings()):
             GreetingWorkflow,
             OrderProcessingWorkflow,
             UserOnboardingWorkflow,
+            ReviewMLWorkflow,
         ],
         activities=[
             say_hello,

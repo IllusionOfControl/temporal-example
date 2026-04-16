@@ -6,6 +6,7 @@ from temporalio.worker import Worker
 
 from app.activities.greeting import say_hello
 from app.activities.order_processing import OrderActivities
+from app.activities.review_ml import ReviewActivities
 from app.settings import get_settings, Settings
 
 interrupt_event = asyncio.Event()
@@ -19,6 +20,7 @@ async def main(settings: Settings = get_settings()):
     )
 
     order_acts = OrderActivities()
+    review_acts = ReviewActivities()
 
     # Создаем воркер
     async with Worker(
@@ -27,6 +29,7 @@ async def main(settings: Settings = get_settings()):
             activities=[
                 say_hello,
                 order_acts.generate_invoice,
+                review_acts.analyze_sentiment
             ]
     ):
         # Wait until interrupted
